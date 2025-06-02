@@ -29,7 +29,7 @@
   },
   "require": {
     "php": ">=7.1",
-    "carono/commerceml": "^0.2.3"
+    "raisite74/commerceml": "^0.2.3"
 
   },
   "require-dev": {
