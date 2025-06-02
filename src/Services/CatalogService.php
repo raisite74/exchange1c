@@ -50,7 +50,7 @@ class CatalogService extends AbstractService
     public function init(): string
     {
         $this->authService->auth();
-        $this->loaderService->clearImportDirectory();
+        #$this->loaderService->clearImportDirectory();
         $zipEnable = function_exists('zip_open') && $this->config->isUseZip();
         $response = 'zip='.($zipEnable ? 'yes' : 'no')."\n";
         $response .= 'file_limit='.$this->config->getFilePart();
@@ -89,17 +89,29 @@ class CatalogService extends AbstractService
     {
         $this->authService->auth();
         $filename = $this->request->get('filename');
-        switch ($filename) {
-            case 'import.xml':
-                {
-                    $this->categoryService->import();
-                    break;
-                }
-            case 'offers.xml':
-                {
-                    $this->offerService->import();
-                    break;
-                }
+
+        #Проверяем существование файла classifier.xml и если он существует проверяем когда он был создан, если ссоздан не одновременно с первым файлом импорта то удаляем его
+        #Упрощена логика до: если класификатор существует в момент импорта import0_1.xml значит он априори старый и мы его удаляем
+        if ($filename === 'import0_1.xml') {
+            #$importFile = $this->config->getImportDir() . '/import0_1.xml';
+            $classifierFile = $this->config->getImportDir() . '/classifier.xml';
+
+            if (file_exists($classifierFile)) {
+            #if (file_exists($importFile) && file_exists($classifierFile)) {
+                unlink($classifierFile);
+                // $importTime = filemtime($importFile);
+                // $classifierTime = filemtime($classifierFile);
+
+                // if (abs($importTime - $classifierTime) <= 10) {
+                //     unlink($classifierFile);
+                // }
+            }
+        }
+        
+        if (preg_match('/^import\d*_\d*\.xml$/', $filename)) {
+            $this->categoryService->import();
+        } elseif (preg_match('/^offers\d*_\d*\.xml$/', $filename)) {
+            $this->offerService->import();
         }
 
         $response = "success\n";

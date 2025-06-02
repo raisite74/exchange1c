@@ -45,6 +45,7 @@ class FileLoaderService
     {
         $filename = basename($this->request->get('filename'));
         $filePath = $this->config->getFullPath($filename);
+
         if ($filename === 'orders.xml') {
             throw new \LogicException('This method is not released');
         } else {
@@ -52,15 +53,27 @@ class FileLoaderService
             if (!is_dir($directory)) {
                 mkdir($directory, 0755, true);
             }
+
+            // Проверяем существование файла, если существует — удаляем
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+
+            // Записываем файл из входящего потока
             $f = fopen($filePath, 'a+');
             fwrite($f, file_get_contents('php://input'));
             fclose($f);
+
+            // Если используется zip — распаковываем и удаляем архив
             if ($this->config->isUseZip()) {
                 $zip = new \ZipArchive();
-                $zip->open($filePath);
-                $zip->extractTo($this->config->getImportDir());
-                $zip->close();
-                unlink($filePath);
+                if ($zip->open($filePath) === true) {
+                    $zip->extractTo($this->config->getImportDir());
+                    $zip->close();
+                    unlink($filePath);
+                } else {
+                    throw new \RuntimeException("Не удалось открыть ZIP-файл: $filename");
+                }
             }
 
             return "success\n";

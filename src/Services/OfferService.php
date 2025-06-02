@@ -19,6 +19,7 @@ use Bigperson\Exchange1C\Interfaces\EventDispatcherInterface;
 use Bigperson\Exchange1C\Interfaces\ModelBuilderInterface;
 use Bigperson\Exchange1C\Interfaces\OfferInterface;
 use Bigperson\Exchange1C\Interfaces\ProductInterface;
+use Bigperson\LaravelExchange1C\Jobs\CatalogServiceJob;
 use Symfony\Component\HttpFoundation\Request;
 use Zenwalker\CommerceML\CommerceML;
 use Zenwalker\CommerceML\Model\Offer;
@@ -82,15 +83,84 @@ class OfferService
             $productId = $offer->getClearId();
             if ($product = $this->findProductModelById($productId)) {
                 $model = $product->getOffer1c($offer);
-                $this->parseProductOffer($model, $offer);
-                $this->_ids[] = $model->getPrimaryKey();
+                if($model)
+                {
+                    $this->parseProductOffer($model, $offer);
+                    $this->_ids[] = $model->getPrimaryKey();
+                }
             } else {
-                throw new Exchange1CException("Продукт $productId не найден в базе");
+                #throw new Exchange1CException("Продукт $productId не найден в базе");
+                continue;
             }
             unset($model);
         }
         $this->afterOfferSync();
     }
+    // public function import()
+    // {
+    //     $batchSize = 2000;
+    //     $startPosition = (int) ($this->request->get('position') ?? 0);
+    //     $currentPosition = 0;
+    //     $processedCount = 0;
+
+    //     $filename = basename($this->request->get('filename'));
+    //     $this->_ids = [];
+
+    //     $commerce = new CommerceML();
+    //     $commerce->loadOffersXml($this->config->getFullPath($filename));
+
+    //     if ($offerClass = $this->getOfferClass()) {
+    //         $offerClass::createPriceTypes1c($commerce->offerPackage->getPriceTypes());
+    //     }
+
+    //     $this->beforeOfferSync();
+
+    //     $allOffers = $commerce->offerPackage->getOffers();
+    //     $totalCount = count($allOffers);
+
+    //     foreach ($allOffers as $offer) {
+    //         if ($currentPosition < $startPosition) {
+    //             $currentPosition++;
+    //             continue;
+    //         }
+
+    //         if ($processedCount >= $batchSize) {
+    //             break;
+    //         }
+
+    //         $productId = $offer->getClearId();
+    //         if ($product = $this->findProductModelById($productId)) {
+    //             $model = $product->getOffer1c($offer);
+    //             if ($model) {
+    //                 $this->parseProductOffer($model, $offer);
+    //                 $this->_ids[] = $model->getPrimaryKey();
+    //             }
+    //         } else {
+    //             // Пропускаем, если продукт не найден
+    //             $currentPosition++;
+    //             continue;
+    //         }
+
+    //         unset($model);
+    //         $currentPosition++;
+    //         $processedCount++;
+    //     }
+
+    //     $this->afterOfferSync();
+
+    //     // Запуск следующей партии, если остались предложения
+    //     if (($startPosition + $processedCount) < $totalCount) {
+    //         $nextPosition = $startPosition + $processedCount;
+
+    //         $data = $this->request->all();
+    //         $data['position'] = $nextPosition;
+
+    //         CatalogServiceJob::dispatch(
+    //             $data,
+    //             $this->request->session()->all()
+    //         )->onQueue(config('exchange1c.queue'));
+    //     }
+    // }
 
     /**
      * @return OfferInterface|null

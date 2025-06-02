@@ -14,6 +14,7 @@ use Bigperson\Exchange1C\Exceptions\Exchange1CException;
 use Illuminate\Contracts\Session\Session;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Illuminate\Session\Store as SessionStore;
 
 /**
  * Class AuthService.
@@ -64,7 +65,8 @@ class AuthService
             $response = "success\n";
             $response .= "laravel_session\n";
             $response .= $this->session->getId()."\n";
-            $response .= 'timestamp='.time();
+            $response .= $this->session->getId();
+            #$response .= 'timestamp='.time();
             if ($this->session instanceof SessionInterface) {
                 $this->session->set(self::SESSION_KEY.'_auth', $this->config->getLogin());
             } elseif ($this->session instanceof Session) {
@@ -104,10 +106,10 @@ class AuthService
 
     private function setSession(): void
     {
-        if (!$this->request->getSession()) {
-            $session = new \Symfony\Component\HttpFoundation\Session\Session();
+        if (!$this->request->hasSession()) {
+            $session = app()->make(SessionStore::class);
             $session->start();
-            $this->request->setSession($session);
+            $this->request->setLaravelSession($session);
         }
 
         $this->session = $this->request->getSession();
