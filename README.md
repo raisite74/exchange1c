@@ -23,7 +23,7 @@
 * symfony/http-foundation ^4.1
 
 # Установка
-`composer require bigperson/exchange1c`
+`composer require raisite74/exchange1c`
 
 # Использование
 Для использования библиотеки вам неободимо определить массив конфигов и реализовать интерфейсы в ваших моделях.

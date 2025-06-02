@@ -1,6 +1,7 @@
 {
-  "name": "bigperson/exchange1c",
+  "name": "raisite74/exchange1c",
   "type": "library",
+  "homepage": "https://github.com/raisite74/exchange1c",
   "description": "Catalog Loader from 1c - CommerceML protocol",
   "keywords": [
     "1c",
@@ -8,11 +9,10 @@
     "1c-exchange",
     "1c-php"
   ],
-  "homepage": "https://github.com/bigperson",
   "license": "MIT",
   "authors": [
     {
-      "name": "Anton Kartsev",
+      "name": "Oleg Eltsov",
       "role": "Developer"
     }
   ],
